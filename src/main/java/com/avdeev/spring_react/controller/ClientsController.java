@@ -13,9 +13,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/clients")
+//@CrossOrigin(origins = "http://172.17.0.2:3000", maxAge = 3600)
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class ClientsController {
     private final ClientRepository clientRepository;
 
+    //@CrossOrigin
     @GetMapping
     public List<Client> getClients() {
         return clientRepository.findAll();
