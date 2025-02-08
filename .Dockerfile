@@ -10,7 +10,7 @@ COPY /frontend/package*.json ./
 # Install dependencies
 RUN npm install
 RUN npm install web-vitals
-RUN npm install --save bootstrap react-cookie react-router-dom@5.2.0 reactstrap
+RUN npm install --save bootstrap react-cookie react-router-dom@5.3.3 reactstrap
 
 
 # Copy the rest of your application files
