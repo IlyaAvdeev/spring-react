@@ -21,7 +21,7 @@ class ClientEdit extends Component {
 
     async componentDidMount() {
         if (this.props.match.params.id !== 'new') {
-            const client = await (await fetch(`http:/localhost:8080/clients/${this.props.match.params.id}`)).json();
+            const client = await (await fetch(`http://localhost:8080/clients/${this.props.match.params.id}`)).json();
             this.setState({item: client});
         }
     }
@@ -39,7 +39,7 @@ class ClientEdit extends Component {
         event.preventDefault();
         const {item} = this.state;
 
-        await fetch('http:/localhost:8080/clients' + (item.id ? '/' + item.id : ''), {
+        await fetch('http://localhost:8080/clients' + (item.id ? '/' + item.id : ''), {
             method: (item.id) ? 'PUT' : 'POST',
             headers: {
                 'Accept': 'application/json',
