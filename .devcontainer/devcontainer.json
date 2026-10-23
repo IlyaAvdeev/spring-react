@@ -1,0 +1,53 @@
+{
+  "name": "Java 21 & Node.js",
+  
+  "dockerComposeFile": "./docker-compose.yml",
+  "service": "devcontainer",
+  
+  "workspaceFolder": "/workspace",
+
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installMaven": "true",
+      "installGradle": "false"
+    },
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "24",
+      "nodeGypDependencies": true
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "vmware.vscode-boot-dev-pack",
+        "asciidoctor.asciidoctor-vscode",
+        "Arjun.swagger-viewer",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-russian",
+        "qufiwefefwoyn.inline-sql-syntax",
+        "dhruv.maven-dependency-explorer",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-containers"
+      ]
+      },
+      "settings": {
+        "maven.terminal.useJavaHome": true,
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.autoSave": "afterDelay",
+        "window.openFilesInNewWindow": "on",
+        "window.openFoldersInNewWindow": "on",
+        "editor.showFoldingControls": "always",
+        "git.autofetch": true,
+        "git.autofetchPeriod": 30, //seconds
+        "cSpell.language": "en, ru"
+      }
+  },
+
+  "remoteUser": "vscode"
+}
