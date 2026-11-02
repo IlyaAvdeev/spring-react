@@ -9,6 +9,8 @@ services:
     
     volumes:
       - ..:/workspace:cached
+    ports:
+      - "3000:3000"
       
     command: sleep infinity
 
