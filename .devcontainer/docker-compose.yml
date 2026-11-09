@@ -11,6 +11,7 @@ services:
       - ..:/workspace:cached
     ports:
       - "3000:3000"
+      - "8080:8080"
       
     command: sleep infinity
 
