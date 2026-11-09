@@ -1,11 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+
+type Client = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+type Status = "idle" | "loading" | "success" | "error";
 
 export default function Home() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<Status>("idle");
+  const [clients, setClients] = useState<Client[]>([]);
+  const [fetchStatus, setFetchStatus] = useState<Status>("idle");
+
+  const fetchClients = useCallback(async () => {
+    setFetchStatus("loading");
+    try {
+      const response = await fetch("http://localhost:8080/clients");
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+      const data: Client[] = await response.json();
+      setClients(data);
+      setFetchStatus("success");
+    } catch (err) {
+      setFetchStatus("error");
+      console.error(err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,19 +52,14 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        let detail = "";
-        try {
-          const text = await response.text();
-          if (text) detail = text;
-        } catch {
-          // ignore
-        }
-        throw new Error(detail || `Request failed: ${response.status}`);
+        const text = await response.text();
+        throw new Error(text || `Request failed: ${response.status}`);
       }
 
       setStatus("success");
       setName("");
       setEmail("");
+      await fetchClients();
     } catch (err) {
       setStatus("error");
       console.error(err);
@@ -41,7 +67,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-1 w-full max-w-md flex-col items-center justify-center gap-6 bg-zinc-50 px-6 py-12">
+    <main className="grid h-full min-h-full grid-cols-1 lg:grid-cols-2 gap-6 p-6">
       <section className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-semibold leading-tight text-zinc-900">
           Введите имя и email
@@ -108,7 +134,61 @@ export default function Home() {
           </p>
         )}
       </section>
+
+      <section className="w-full rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold leading-tight text-zinc-900">
+            Список клиентов
+          </h1>
+          <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
+            {clients.length} записей
+          </span>
+        </div>
+
+        {fetchStatus === "loading" && (
+          <p className="mt-6 text-sm text-zinc-500">Загрузка...</p>
+        )}
+
+        {fetchStatus === "error" && (
+          <p className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700">
+            Не удалось загрузить клиентов. Проверьте бэкенд на <code className="font-mono">http://localhost:8080</code>.
+          </p>
+        )}
+
+        {fetchStatus === "success" && clients.length === 0 && (
+          <p className="mt-6 text-sm text-zinc-500">
+            В базе пока нет клиентов.
+          </p>
+        )}
+
+        {fetchStatus === "success" && clients.length > 0 && (
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-zinc-200 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                  <th className="px-3 py-3">ID</th>
+                  <th className="px-3 py-3">Имя</th>
+                  <th className="px-3 py-3">Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((client) => (
+                  <tr
+                    key={client.id}
+                    className="border-b border-zinc-100 transition hover:bg-zinc-50"
+                  >
+                    <td className="px-3 py-3 font-mono text-xs text-zinc-500">
+                      {client.id}
+                    </td>
+                    <td className="px-3 py-3 text-zinc-900">{client.name}</td>
+                    <td className="px-3 py-3 text-zinc-700">{client.email}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </main>
   );
 }
-
