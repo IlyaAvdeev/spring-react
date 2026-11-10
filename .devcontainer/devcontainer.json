@@ -33,7 +33,8 @@
         "qufiwefefwoyn.inline-sql-syntax",
         "dhruv.maven-dependency-explorer",
         "redhat.vscode-yaml",
-        "ms-azuretools.vscode-containers"
+        "ms-azuretools.vscode-containers",
+        "DBCode.dbcode"
       ]
       },
       "settings": {
