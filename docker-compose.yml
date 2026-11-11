@@ -1,0 +1,106 @@
+# ---------------------------------------------------------------
+# Docker Compose — production deployment of spring-react
+#
+# Структура:
+#   prod/frontend/  — Dockerfile + nginx.conf для frontend (Next.js)
+#   prod/backend/   — pom.xml + Dockerfile для backend (Spring Boot)
+#   prod/db/data    — volume для H2 (доступно на хосте)
+#   prod/logs       — volume для логов
+#
+# Сборка production-сборок (frontend выносится в отдельный продакшн-этап):
+#   docker compose -f docker-compose.yml build
+#
+# Запуск:
+#   docker compose -f docker-compose.yml up -d
+#
+# Остановка:
+#   docker compose -f docker-compose.yml down
+#   (добавьте -v, чтобы удалить volume с данными H2)
+#
+# Порты:
+#   80   — frontend (nginx)        http://localhost
+#   443  — frontend (nginx)        https://localhost (TLS не настроен по умолчанию)
+#   8080 — backend (Spring Boot)   http://localhost:8080
+#
+# Термины:
+#   - frontend собирается отдельно (продакшн-этап в Dockerfile)
+#   - backend собирается через mvn package и запускается на Java 21 JRE
+#   - H2 хранится в volume db-data
+#   - лог-файлы в volume logs
+# ---------------------------------------------------------------
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile-front
+    container_name: spring-react-frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    env_file:
+      - ./prod/frontend/.env.prod
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile-back
+    container_name: spring-react-backend
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
+    env_file:
+      - ./prod/backend/.env.prod
+    environment:
+      - PORT=${BACKEND_PORT:-8080}
+      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - db-data:/app/db
+      - logs:/app/logs
+    networks:
+      - app-network
+    depends_on:
+      - db
+
+  db:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: spring-react-db
+    restart: unless-stopped
+    volumes:
+      - db-data:/app/db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - app-network
+
+  # ── Nginx (TLS/HTTPS, reverse proxy) ───────────────────────
+  # nginx:
+  #   image: nginx:1.27-alpine
+  #   container_name: spring-react-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf
+  #     - ./ssl:/etc/nginx/ssl:ro
+  #   restart: unless-stopped
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - frontend
+  #     - backend
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:
+    driver: local
+  logs:
+    driver: local

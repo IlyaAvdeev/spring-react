@@ -20,7 +20,7 @@ export default function Home() {
   const fetchClients = useCallback(async () => {
     setFetchStatus("loading");
     try {
-      const response = await fetch("http://localhost:8080/clients");
+      const response = await fetch("http://localhost:8082/clients");
       if (!response.ok) {
         const text = await response.text();
         throw new Error(text || `Request failed: ${response.status}`);
@@ -43,7 +43,7 @@ export default function Home() {
     setStatus("loading");
 
     try {
-      const response = await fetch("http://localhost:8080/clients", {
+      const response = await fetch("http://localhost:8082/clients", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
