@@ -10,6 +10,30 @@ type Client = {
 
 type Status = "idle" | "loading" | "success" | "error";
 
+// API URL is resolved from environment variables at build time for Next.js.
+// We prefer the backend service inside the Docker network, and fall back to
+// a configurable URL for local development.
+const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api";
+const NEXT_PUBLIC_BACKEND_SERVICE_URL = process.env.NEXT_PUBLIC_BACKEND_SERVICE_URL ?? "http://backend:8080";
+
+function resolveApiBase(): string {
+  // Inside Docker containers, `localhost` in the browser resolves to the
+  // browser container itself, not the host or another service in the
+  // Compose network. Use the Compose service name instead.
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+    return NEXT_PUBLIC_BACKEND_SERVICE_URL;
+  }
+
+  if (NEXT_PUBLIC_API_URL.startsWith("http")) {
+    return NEXT_PUBLIC_API_URL;
+  }
+
+  // Relative fallback keeps Next.js Router compatible
+  return NEXT_PUBLIC_API_URL;
+}
+
+const API_BASE = resolveApiBase();
+
 export default function Home() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,7 +44,7 @@ export default function Home() {
   const fetchClients = useCallback(async () => {
     setFetchStatus("loading");
     try {
-      const response = await fetch("http://localhost:8082/clients");
+      const response = await fetch(`${API_BASE}/clients`);
       if (!response.ok) {
         const text = await response.text();
         throw new Error(text || `Request failed: ${response.status}`);
@@ -43,7 +67,7 @@ export default function Home() {
     setStatus("loading");
 
     try {
-      const response = await fetch("http://localhost:8082/clients", {
+      const response = await fetch(`${API_BASE}/clients`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +154,7 @@ export default function Home() {
 
         {status === "error" && (
           <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
-            Ошибка при отправке. Проверьте, что бэкенд запущен на <code className="font-mono">http://localhost:8080</code>.
+            Ошибка при отправке. Проверьте, что бэкенд запущен в сети Docker.
           </p>
         )}
       </section>
@@ -151,7 +175,7 @@ export default function Home() {
 
         {fetchStatus === "error" && (
           <p className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700">
-            Не удалось загрузить клиентов. Проверьте бэкенд на <code className="font-mono">http://localhost:8080</code>.
+            Не удалось загрузить клиентов. Проверьте бэкенд в сети Docker.
           </p>
         )}
 

@@ -22,7 +22,19 @@ npx create-next-app@latest
 npm run dev
 ```
 
-Страница должна быть доступна на `http://localhost:3000/`.
+Запуск бекэнда изнутри dev контейнера:
+
+```sh
+mvn spring-boot:run 
+```
+
+Запуск продовой среды:
+
+```sh
+docker compose up -d --build
+```
+
+В браузере открывать `http://localhost:8085/`.
 
 ## Что можно делать с проектом
 
