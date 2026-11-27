@@ -1,18 +1,16 @@
-version: '3.8'
-
 services:
   devcontainer:
     image: mcr.microsoft.com/devcontainers/base:ubuntu24.04
     #build:
     #  context: .
     #  dockerfile: Dockerfile
-    
+
     volumes:
       - ..:/workspace:cached
     ports:
-      - "3000:3000"
+      - "3001:3001"
       - "8080:8080"
-      
+
     command: sleep infinity
 
     networks:

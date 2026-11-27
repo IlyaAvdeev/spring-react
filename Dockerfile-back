@@ -1,0 +1,25 @@
+# ---------------------------------------------------------------
+# Production Dockerfile for Spring Boot backend
+# Build:  docker build -t spring-react-backend:1 ./backend
+# ---------------------------------------------------------------
+
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
+
+WORKDIR /app
+
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+COPY src ./src
+RUN mvn clean package -DskipTests -B
+
+FROM eclipse-temurin:21-jre-alpine
+
+ENV PORT=8080
+EXPOSE 8080
+
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

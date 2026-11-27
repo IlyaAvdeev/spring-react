@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------
+# Production Dockerfile for frontend (Next.js + nginx)
+#
+# Build:
+#   docker compose -f docker-compose.yml build frontend
+#
+# Run:
+#   docker compose -f docker-compose.yml up -d frontend
+#
+# The image serves static files from /usr/share/nginx/html and uses
+# the nginx.conf from prod/frontend/. This keeps production ports:
+#   80  -> http://localhost
+#   443 -> https://localhost (TLS not configured by default)
+# ---------------------------------------------------------------
+
+# ------------------------- builder -------------------------
+FROM node:24-alpine AS builder
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/package-lock.json ./
+
+RUN npm config set registry https://registry.npmmirror.com && \
+    npm ci --include=optional
+
+COPY frontend/ .
+
+RUN npm run build
+
+# ------------------------- production -------------------
+FROM node:24-alpine AS production
+WORKDIR /app/frontend
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+COPY --from=builder /app/frontend/public ./public
+COPY --from=builder /app/frontend/.next/standalone ./
+COPY --from=builder /app/frontend/.next/static ./.next/static
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
